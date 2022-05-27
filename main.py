@@ -13,10 +13,10 @@ client = MongoClient(connection_string)
 
 
 dbs = client.list_database_names()
-print(dbs)
+#print(dbs)
 mongodb = client.first_mongodb
 collections = mongodb.list_collection_names()
-print(collections)
+#print(collections)
 
 #differences between MongoDb and SQL/others
 #Others are usually RDBMS that use tables and use SQL
@@ -36,7 +36,7 @@ def insert_test_doc():
     }
     inserted_id = collection.insert_one(test_document).inserted_id
     print (inserted_id)
-insert_test_doc()
+#insert_test_doc()
 
 #output is 6290cbb07df5e6e1c24d37b3 == insert id which is a bson object id
 
@@ -48,7 +48,7 @@ person_collection = production.person_collection
 def create_documents():
     first_names = ["Kerim", "Esteban", "Ricardo", "Renzo", "Eric", "Ali", "Mike", "Dan", "Brandon", "Deigo"]
     last_names = ["Sever", "Roldan", "Regatao", "Santamaria", "Moreales", "Timur", "DiGangi", "DiGangi", "Furtado", "Belo"]
-    ages = [22, 21, 21, 23, 23, 21, 22, 23, 22, 22, 22]
+    ages = [22, 21, 21, 23, 23, 23, 22, 23, 22, 22, 22]
 
     docs = []
 
@@ -59,7 +59,7 @@ def create_documents():
 
     person_collection.insert_many(docs)
 
-create_documents()
+#create_documents()
 
 printer = pprint.PrettyPrinter()
 
@@ -75,9 +75,69 @@ def find_all_people():
 
 #output in documents and can be treated as dictionarys 
 
+
+
 def find_kerim():
     kerim = person_collection.find_one({"first_name": "Kerim", "last_name": "Sever"})
     printer.pprint(kerim)
 
 #find_kerim()
 
+
+
+def count_all_people():
+    count = person_collection.count_documents(filter={})
+    print("Number of people", count)
+
+#count_all_people()
+
+
+
+def get_person_by_id(person_id):
+    from bson.objectid import ObjectId
+    #need to do this for all id into obj id with bson
+    var_id = ObjectId(person_id)
+    person = person_collection.find_one({"_id": var_id})
+    printer.pprint(person)
+
+#get_person_by_id("6290e5073357146dc2401a23")
+
+
+def get_age_range(min_age, max_age):
+    query = {"$and": [
+                {"age": {"$gte": min_age}}, #syntax "age" is the field and {"$gte": min_age} is the query
+                {"age": {"$lte": max_age}} #$lte = less than equal to  $gte = greater than equal to $ly = less than
+            ]}
+
+    people = person_collection.find(query).sort("age")
+    for person in people:
+        printer.pprint(person)
+
+#get_age_range(20, 21)
+
+
+def project_columns():
+    columns = {"_id": 0, "first_name": 1, "last_name": 1}
+    people = person_collection.find({}, columns)
+    for person in people:
+        printer.pprint(person)
+
+#project_columns() 
+
+
+#this is the updates portion of the code, before were just creating queries
+
+def update_person_by_id(person_id):
+    from bson.objectid import ObjectId
+
+    var_id = ObjectId(person_id)
+
+    all_updates = {
+        "$set": {"new_field": True},
+        "$inc": {"age": 1},
+        "$rename": {"first_name": "first", "last_name": "last"}
+    }
+
+    person_collection.update_one({"_id": var_id}, all_updates)
+
+update_person_by_id("6290e5073357146dc2401a27")
