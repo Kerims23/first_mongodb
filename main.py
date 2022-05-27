@@ -139,5 +139,88 @@ def update_person_by_id(person_id):
     }
 
     person_collection.update_one({"_id": var_id}, all_updates)
+    
+    #person_collection.update_one({"_id": var_id}, {"$unset": {"new_field": ""}})
 
-update_person_by_id("6290e5073357146dc2401a27")
+
+#update_person_by_id("6290e5073357146dc2401a25")
+
+
+
+def replace_one(person_id):
+    from bson.objectid import ObjectId
+    var_id = ObjectId(person_id)
+
+    new_doc = {
+        "first_name": "new first name",
+        "last_name": "new last name",
+        "age": 100
+    }
+
+    person_collection.replace_one({"_id": var_id}, new_doc)
+
+
+#replace_one("6290e5073357146dc2401a27")
+
+
+
+
+def delete_doc_by_id(person_id):
+    from bson.objectid import ObjectId
+    var_id = ObjectId(person_id)
+    person_collection.delete_one({"_id": var_id})
+    person_collection.delete_many({"_id": var_id})#if you leave {} empty itll delete everything
+
+#delete_doc_by_id("6290e5073357146dc2401a2b")
+#this removed belo
+
+
+#------------------------------------------------------------------
+
+address = {
+    "_id": "2343247239847",
+    "street": "Albert street",
+    "number": 16,
+    "city": "North Arlington",
+    "country": "United States",
+    "zip": "07031",
+    "owner_id": "6290e5073357146dc2401a24" #this is the same as the person _id indicating that it belongs to that person
+}
+
+
+# person = {
+#     "_id": "6345435345435",
+#     "first_name": "James",
+#     "address": {#you can make a list of address by using the [] around {} like this [{}]
+#         "_id": "2343247239847",
+#         "street": "Albert street",
+#         "number": 16,
+#         "city": "North Arlington",
+#         "country": "United States",
+#         "zip": "07031"
+#     }
+# }
+
+
+def add_address_embed(person_id, address):
+    from bson.objectid import ObjectId
+    var_id = ObjectId(person_id)
+
+    person_collection.update_one({"_id": var_id}, {"$addToSet": {'addresses': address}})
+
+#add_address_embed("6290e5073357146dc2401a24", address)
+
+
+
+
+def add_address_relationship(person_id, address):
+    from bson.objectid import ObjectId
+    var_id = ObjectId(person_id)
+
+    address = address.copy()
+    address["owner_id"] = person_id
+
+    address_collection = production.address
+    address_collection.insert_one(address)
+
+add_address_relationship("6290e5073357146dc2401a24", address)
